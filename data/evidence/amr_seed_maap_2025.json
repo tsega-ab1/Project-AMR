@@ -1,0 +1,52 @@
+{
+  "_meta": {
+    "description": "Seed AMR evidence records extracted from published aggregate statistics (not raw patient data)",
+    "source_title": "Antimicrobial resistance in Africa: A retrospective analysis of data from 14 countries, 2016-2019",
+    "source_authors": "Osena G, Kapoor G, Kalanxhi E, et al. (the MAAP Study Group)",
+    "source_journal": "PLOS Medicine",
+    "source_doi": "10.1371/journal.pmed.1004638",
+    "source_url": "https://doi.org/10.1371/journal.pmed.1004638",
+    "source_license": "CC BY 4.0",
+    "collection_period": "2016-2019",
+    "note": "Raw MAAP patient-level data is NOT publicly redistributable (data-sharing agreements restrict third-party release per Africa CDC). These records are aggregate percentages as reported in the published, peer-reviewed article text/tables, which IS open access under CC BY 4.0.",
+    "schema_version": "0.1"
+  },
+  "records": [
+    {"pathogen": "Enterobacterales", "antibiotic_class": "third-generation cephalosporins", "country": "Ghana", "region": "Western Africa", "year": 2018, "resistance_pct": 73.5, "ci_95": [67.7, 78.7], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "moderate", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Enterobacterales", "antibiotic_class": "third-generation cephalosporins", "country": "Eswatini", "region": "Southern Africa", "year": 2018, "resistance_pct": 30.3, "ci_95": [5.8, 75.3], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "low", "citation_doi": "10.1371/journal.pmed.1004638", "note": "very wide CI, small sample"},
+    {"pathogen": "Enterobacterales", "antibiotic_class": "carbapenems", "country": "Malawi", "region": "Eastern Africa", "year": 2018, "resistance_pct": 1.0, "ci_95": [0.2, 5.0], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "moderate", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Enterobacterales", "antibiotic_class": "carbapenems", "country": "Ghana", "region": "Western Africa", "year": 2018, "resistance_pct": 49.6, "ci_95": [25.8, 73.6], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "low", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Pseudomonas aeruginosa", "antibiotic_class": "carbapenems", "country": "Senegal", "region": "Western Africa", "year": 2018, "resistance_pct": 4.4, "ci_95": [2.1, 8.9], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "moderate", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Pseudomonas aeruginosa", "antibiotic_class": "carbapenems", "country": "Gabon", "region": "Central Africa", "year": 2018, "resistance_pct": 37.5, "ci_95": [9.7, 77.0], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "low", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Staphylococcus aureus (MRSA)", "antibiotic_class": "methicillin", "country": "Burkina Faso", "region": "Western Africa", "year": 2018, "resistance_pct": 20.4, "ci_95": [14.9, 27.2], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "moderate", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Staphylococcus aureus (MRSA)", "antibiotic_class": "methicillin", "country": "Nigeria", "region": "Western Africa", "year": 2018, "resistance_pct": 72.8, "ci_95": [59.9, 82.7], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "moderate", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Staphylococcus aureus (MRSA)", "antibiotic_class": "methicillin", "country": "Ghana", "region": "Western Africa", "year": 2018, "resistance_pct": 71.1, "ci_95": [48.5, 86.5], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "low", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Staphylococcus aureus (MRSA)", "antibiotic_class": "methicillin", "country": "Gabon", "region": "Central Africa", "year": 2018, "resistance_pct": 68.8, "ci_95": [39.2, 88.3], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "low", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Staphylococcus aureus (MRSA)", "antibiotic_class": "methicillin", "country": "Cameroon", "region": "Central Africa", "year": 2018, "resistance_pct": 62.0, "ci_95": [38.7, 80.9], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "low", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Staphylococcus aureus (MRSA)", "antibiotic_class": "methicillin", "country": "Zambia", "region": "Eastern Africa", "year": 2018, "resistance_pct": 62.0, "ci_95": [56.0, 67.6], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "moderate", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Staphylococcus aureus (MRSA)", "antibiotic_class": "methicillin", "country": "Eswatini", "region": "Southern Africa", "year": 2018, "resistance_pct": 54.0, "ci_95": [2.7, 98.0], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "very low", "citation_doi": "10.1371/journal.pmed.1004638", "note": "extremely wide CI, tiny sample - flag as unreliable"},
+    {"pathogen": "Salmonella spp.", "antibiotic_class": "fluoroquinolones", "country": "Malawi", "region": "Eastern Africa", "year": 2018, "resistance_pct": 1.8, "ci_95": [0.2, 14.7], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "low", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Salmonella spp.", "antibiotic_class": "fluoroquinolones", "country": "Zambia", "region": "Eastern Africa", "year": 2018, "resistance_pct": 40.0, "ci_95": [17.6, 67.5], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "low", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Escherichia coli", "antibiotic_class": "third-generation cephalosporins", "country": "Eswatini", "region": "Southern Africa", "year": 2018, "resistance_pct": 19.3, "ci_95": [7.1, 42.6], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "low", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Escherichia coli", "antibiotic_class": "third-generation cephalosporins", "country": "Ghana", "region": "Western Africa", "year": 2018, "resistance_pct": 68.4, "ci_95": [52.8, 80.6], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "moderate", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Escherichia coli", "antibiotic_class": "fluoroquinolones", "country": "Eswatini", "region": "Southern Africa", "year": 2018, "resistance_pct": 27.6, "ci_95": [19.5, 37.6], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "moderate", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Escherichia coli", "antibiotic_class": "fluoroquinolones", "country": "Burkina Faso", "region": "Western Africa", "year": 2018, "resistance_pct": 65.3, "ci_95": [56.3, 73.2], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "moderate", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Klebsiella pneumoniae", "antibiotic_class": "carbapenems", "country": "Zambia", "region": "Eastern Africa", "year": 2018, "resistance_pct": 0.0, "ci_95": null, "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "low", "citation_doi": "10.1371/journal.pmed.1004638", "note": "0% may reflect low testing volume, not true absence of resistance"},
+    {"pathogen": "Klebsiella pneumoniae", "antibiotic_class": "carbapenems", "country": "Kenya", "region": "Eastern Africa", "year": 2018, "resistance_pct": 35.7, "ci_95": [6.9, 80.6], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "low", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Klebsiella pneumoniae", "antibiotic_class": "third-generation cephalosporins", "country": "Senegal", "region": "Western Africa", "year": 2018, "resistance_pct": 51.4, "ci_95": [44.7, 58.0], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "moderate", "citation_doi": "10.1371/journal.pmed.1004638"},
+    {"pathogen": "Klebsiella pneumoniae", "antibiotic_class": "third-generation cephalosporins", "country": "Malawi", "region": "Eastern Africa", "year": 2018, "resistance_pct": 90.6, "ci_95": [87.6, 92.9], "specimen": null, "population": null, "source_type": "peer-reviewed multi-country study", "confidence_tier": "moderate", "citation_doi": "10.1371/journal.pmed.1004638"}
+  ],
+  "study_level_context": {
+    "countries_covered": ["Burkina Faso", "Cameroon", "Eswatini", "Gabon", "Ghana", "Kenya", "Malawi", "Nigeria", "Senegal", "Sierra Leone", "Tanzania", "Uganda", "Zambia", "Zimbabwe"],
+    "note_ethiopia": "Ethiopia was NOT one of the 14 MAAP study countries - you'll need a separate source (individual published studies, or GLASS/ATLAS filtered by Ethiopia) to seed Ethiopia-specific records for your home-country angle.",
+    "total_culture_records": 819584,
+    "total_positive_AST_records": 187832,
+    "data_quality_score_range": "56.4 (Sierra Leone) to 80.8 (Senegal), median 73.1",
+    "region_definitions": {
+      "Central": ["Gabon"],
+      "Eastern": ["Malawi", "Kenya", "Uganda", "Tanzania", "Zambia"],
+      "Southern": ["Eswatini", "Zimbabwe"],
+      "Western": ["Burkina Faso", "Cameroon", "Ghana", "Nigeria", "Senegal", "Sierra Leone"]
+    }
+  }
+}

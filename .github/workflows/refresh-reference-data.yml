@@ -1,0 +1,36 @@
+name: Refresh AMR reference data
+
+# Pattern B: small, periodically-updated lookup tables.
+# This does NOT fetch per-user-request data (that's AlphaFold, called live from
+# your backend — see alphafold_client.py). This only refreshes the static
+# reference tables that change on a slow release cycle (CARD: monthly,
+# WHO GLASS: yearly-ish).
+
+on:
+  schedule:
+    - cron: '0 3 1 * *'   # 1st of every month, 03:00 UTC
+  workflow_dispatch: {}    # lets you trigger it manually from the Actions tab
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install deps
+        run: pip install requests pandas
+
+      - name: Refresh CARD + GLASS reference tables
+        run: python scripts/refresh_reference_data.py
+
+      - name: Commit updated reference data (if changed)
+        run: |
+          git config user.name "amr-data-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/reference/*.json
+          git diff --cached --quiet || git commit -m "chore: refresh AMR reference data $(date -u +%Y-%m-%d)"
+          git push
