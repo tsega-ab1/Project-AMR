@@ -54,12 +54,37 @@
   .brand-text h1 { font-size: 16px; margin: 0; font-weight: 600; letter-spacing: 0.01em; }
   .brand-text p { font-size: 11px; margin: 2px 0 0; color: #b9c9bd; font-family: -apple-system, sans-serif; }
   .nav { list-style: none; padding: 0; margin: 0; font-family: -apple-system, sans-serif; font-size: 14px; }
-  .nav li {
-    padding: 9px 12px; border-radius: 7px; margin-bottom: 2px; cursor: pointer;
-    color: #cdd9d1; display: flex; align-items: center; gap: 10px;
-  }
+  .nav li { padding: 9px 12px; border-radius: 7px; margin-bottom: 2px; cursor: pointer; color: #cdd9d1; display: flex; align-items: center; gap: 10px; }
   .nav li.active { background: rgba(255,255,255,0.12); color: #fff; font-weight: 500; }
   .nav li:hover:not(.active) { background: rgba(255,255,255,0.06); }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* Geography view */
+  .map-layout { display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px; }
+  .africa-map-wrap { position: relative; }
+  .africa-map-wrap svg { width: 100%; height: auto; display: block; }
+  .africa-map-wrap svg .country { fill: #e4e2d6; stroke: #fff; stroke-width: 0.5; cursor: default; transition: fill 0.15s; }
+  .africa-map-wrap svg .country[data-has-data="true"] { cursor: pointer; }
+  .africa-map-wrap svg .country:hover { stroke: #16241f; stroke-width: 1; }
+  .map-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; font-family: -apple-system, sans-serif; font-size: 11.5px; color: var(--ink-soft); }
+  .map-legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  .map-tooltip {
+    position: absolute; pointer-events: none; background: var(--ink); color: #fff;
+    font-family: -apple-system, sans-serif; font-size: 12px; padding: 6px 10px; border-radius: 6px;
+    transform: translate(-50%, -110%); white-space: nowrap; opacity: 0; transition: opacity 0.1s;
+  }
+
+  /* Full-width data tables (Microbes / Antibiotics / Sources views) */
+  .full-table-panel table { width: 100%; }
+  .full-table-panel .bar-track { height: 7px; background: #efeee5; border-radius: 4px; overflow: hidden; width: 120px; }
+  .full-table-panel .bar-fill { height: 100%; border-radius: 4px; }
+  .source-card { padding: 14px 0; border-bottom: 1px solid #eeece2; font-family: -apple-system, sans-serif; }
+  .source-card:last-child { border-bottom: none; }
+  .source-card h4 { margin: 0 0 4px; font-size: 14px; font-family: Georgia, serif; }
+  .source-card .meta { font-size: 12px; color: var(--ink-soft); line-height: 1.6; }
+  .source-card a { color: var(--forest); }
   .sidebar-footer {
     margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.12);
     font-family: -apple-system, sans-serif; font-size: 12px; color: #a9bbaf; line-height: 1.5;
@@ -157,12 +182,12 @@
       </div>
     </div>
     <ul class="nav">
-      <li class="active">Dashboard</li>
-      <li>Microbes</li>
-      <li>Antibiotics</li>
-      <li>Geography</li>
-      <li>Trends</li>
-      <li>Evidence sources</li>
+      <li class="active" data-view="dashboard">Dashboard</li>
+      <li data-view="microbes">Microbes</li>
+      <li data-view="antibiotics">Antibiotics</li>
+      <li data-view="geography">Geography</li>
+      <li data-view="trends">Trends</li>
+      <li data-view="sources">Evidence sources</li>
     </ul>
     <div class="sidebar-footer">
       Data from MAAP (14 African countries, 2016&#8211;2019), EPHI national reference lab, and Ethiopia's national AMR sentinel network (2020&#8211;2024).
@@ -179,6 +204,8 @@
 
     <h2 class="page-title">AMR Intelligence Dashboard</h2>
     <p class="page-sub">Explore which pathogens are resistant to which antibiotics, where, and according to what evidence.</p>
+
+    <section class="view active" id="view-dashboard">
 
     <div class="stat-grid" id="stat-grid">
       <div class="stat-card"><div class="stat-label">Evidence Records</div><div class="stat-value">&ndash;</div></div>
@@ -248,6 +275,104 @@
       </table>
       <p class="source-note" id="source-note"></p>
     </div>
+
+    </section>
+
+    <section class="view" id="view-geography">
+      <div class="panel" style="margin-bottom:14px;">
+        <div class="panel-head">
+          <div>
+            <p class="panel-title">Resistance by Country &mdash; Africa</p>
+            <p class="panel-sub">Hover a country for its average resistance. Countries in grey have no evidence yet for this filter.</p>
+          </div>
+        </div>
+        <div class="field" style="max-width:260px; display:inline-block; margin-right:12px;">
+          <label style="font-family:-apple-system,sans-serif; font-size:12px; color:var(--ink-soft);">Pathogen</label>
+          <select id="geo-filter-pathogen"></select>
+        </div>
+        <div class="field" style="max-width:260px; display:inline-block;">
+          <label style="font-family:-apple-system,sans-serif; font-size:12px; color:var(--ink-soft);">Antibiotic class</label>
+          <select id="geo-filter-antibiotic"></select>
+        </div>
+      </div>
+
+      <div class="map-layout">
+        <div class="panel">
+          <div class="africa-map-wrap" id="africa-map-wrap">
+            <div class="empty-note">Loading map&hellip;</div>
+            <div class="map-tooltip" id="map-tooltip"></div>
+          </div>
+          <div class="map-legend">
+            <span><span class="swatch" style="background:var(--r-verylow)"></span>&lt; 5%</span>
+            <span><span class="swatch" style="background:var(--r-low)"></span>5&ndash;25%</span>
+            <span><span class="swatch" style="background:var(--r-mid)"></span>25&ndash;50%</span>
+            <span><span class="swatch" style="background:var(--r-high)"></span>50&ndash;70%</span>
+            <span><span class="swatch" style="background:var(--r-veryhigh)"></span>&gt; 70%</span>
+            <span><span class="swatch" style="background:#e4e2d6"></span>no data</span>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><p class="panel-title">Countries in this view</p></div>
+          <div id="geo-country-list"><div class="empty-note">Loading&hellip;</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-microbes">
+      <div class="panel full-table-panel">
+        <div class="panel-head"><p class="panel-title">All Pathogens</p></div>
+        <p class="panel-sub">Every pathogen currently in the evidence base, ranked by average reported resistance</p>
+        <table>
+          <thead><tr><th>Pathogen</th><th>Avg. resistance</th><th></th><th>Records</th></tr></thead>
+          <tbody id="microbes-full-body"><tr><td colspan="4" class="empty-note">Loading&hellip;</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="view" id="view-antibiotics">
+      <div class="panel full-table-panel">
+        <div class="panel-head"><p class="panel-title">All Antibiotic Classes</p></div>
+        <p class="panel-sub">Average reported resistance per antibiotic class across all evidence records</p>
+        <table>
+          <thead><tr><th>Antibiotic class</th><th>Avg. resistance</th><th></th><th>Records</th></tr></thead>
+          <tbody id="antibiotics-full-body"><tr><td colspan="4" class="empty-note">Loading&hellip;</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="view" id="view-trends">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-title">Resistance Trend</p>
+            <p class="panel-sub" id="trend-sub-2">Select a pathogen, antibiotic, and country</p>
+          </div>
+        </div>
+        <div class="field" style="max-width:220px; display:inline-block; margin-right:12px;">
+          <label style="font-family:-apple-system,sans-serif; font-size:12px; color:var(--ink-soft);">Pathogen</label>
+          <select id="trend-filter-pathogen"></select>
+        </div>
+        <div class="field" style="max-width:220px; display:inline-block; margin-right:12px;">
+          <label style="font-family:-apple-system,sans-serif; font-size:12px; color:var(--ink-soft);">Antibiotic class</label>
+          <select id="trend-filter-antibiotic"></select>
+        </div>
+        <div class="field" style="max-width:220px; display:inline-block;">
+          <label style="font-family:-apple-system,sans-serif; font-size:12px; color:var(--ink-soft);">Country</label>
+          <select id="trend-filter-country"></select>
+        </div>
+        <div style="margin-top:16px;">
+          <canvas id="trend-chart-2"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-sources">
+      <div class="panel">
+        <div class="panel-head"><p class="panel-title">Evidence Sources</p></div>
+        <p class="panel-sub">Every publication or surveillance report backing this dashboard's figures</p>
+        <div id="sources-full-list"><div class="empty-note">Loading&hellip;</div></div>
+      </div>
+    </section>
 
   </main>
 </div>
@@ -486,8 +611,241 @@ async function init() {
   } catch (err) {
     console.error('filter refresh failed:', err);
   }
+
+  setupNav();
 }
 init();
+
+// ---------- Sidebar navigation ----------
+
+const viewLoaded = { geography: false, microbes: false, antibiotics: false, trends: false, sources: false };
+
+function setupNav() {
+  document.querySelectorAll('.nav li').forEach(li => {
+    li.addEventListener('click', () => switchView(li.dataset.view));
+  });
+}
+
+async function switchView(view) {
+  document.querySelectorAll('.nav li').forEach(li => li.classList.toggle('active', li.dataset.view === view));
+  document.querySelectorAll('.view').forEach(sec => sec.classList.toggle('active', sec.id === 'view-' + view));
+
+  if (viewLoaded[view]) return;
+  viewLoaded[view] = true;
+
+  try {
+    if (view === 'geography') await initGeographyView();
+    else if (view === 'microbes') await loadMicrobesFullTable();
+    else if (view === 'antibiotics') await loadAntibioticsFullTable();
+    else if (view === 'trends') await initTrendsView();
+    else if (view === 'sources') await loadSourcesFullList();
+  } catch (err) {
+    console.error(view, 'view failed to load:', err);
+    viewLoaded[view] = false; // allow retry on next click
+  }
+}
+
+// ---------- Geography view (Africa map) ----------
+
+let africaSvgLoaded = false;
+
+async function initGeographyView() {
+  const [{ pathogens }, { antibiotic_classes }] = await Promise.all([
+    fetchJSON('/pathogens'), fetchJSON('/antibiotics')
+  ]);
+  const fill = (id, items, placeholder) => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = `<option value="">${placeholder}</option>` + items.map(i => `<option value="${i}">${i}</option>`).join('');
+  };
+  fill('geo-filter-pathogen', pathogens, 'All pathogens');
+  fill('geo-filter-antibiotic', antibiotic_classes, 'All antibiotic classes');
+  if (pathogens.includes('Klebsiella pneumoniae')) document.getElementById('geo-filter-pathogen').value = 'Klebsiella pneumoniae';
+  if (antibiotic_classes.includes('carbapenems')) document.getElementById('geo-filter-antibiotic').value = 'carbapenems';
+
+  document.getElementById('geo-filter-pathogen').addEventListener('change', refreshMap);
+  document.getElementById('geo-filter-antibiotic').addEventListener('change', refreshMap);
+
+  if (!africaSvgLoaded) {
+    const svgText = await (await fetch('./vendor/africa-map.svg')).text();
+    const wrap = document.getElementById('africa-map-wrap');
+    wrap.querySelector('.empty-note')?.remove();
+    wrap.insertAdjacentHTML('afterbegin', svgText);
+    africaSvgLoaded = true;
+
+    const tooltip = document.getElementById('map-tooltip');
+    document.querySelectorAll('#africa-map-wrap .country').forEach(el => {
+      el.addEventListener('mousemove', e => {
+        const name = el.dataset.name;
+        const pct = el.dataset.pct;
+        tooltip.textContent = pct ? `${name}: ${pct}%` : `${name}: no data`;
+        tooltip.style.opacity = '1';
+        const wrapRect = document.getElementById('africa-map-wrap').getBoundingClientRect();
+        tooltip.style.left = (e.clientX - wrapRect.left) + 'px';
+        tooltip.style.top = (e.clientY - wrapRect.top) + 'px';
+      });
+      el.addEventListener('mouseleave', () => { tooltip.style.opacity = '0'; });
+    });
+  }
+
+  await refreshMap();
+}
+
+// Map country names as used in our evidence data -> the id used in the
+// vendored SVG (mostly ISO2 lowercase codes; a few names differ from the
+// SVG's official name so we match by name text set as data-name).
+async function refreshMap() {
+  const pathogen = document.getElementById('geo-filter-pathogen').value;
+  const antibiotic = document.getElementById('geo-filter-antibiotic').value;
+
+  let q = '/by-country?';
+  if (pathogen) q += 'pathogen=' + encodeURIComponent(pathogen) + '&';
+  if (antibiotic) q += 'antibiotic_class=' + encodeURIComponent(antibiotic);
+  const { countries } = await fetchJSON(q);
+  const byName = Object.fromEntries(countries.map(c => [c.country.toLowerCase(), c]));
+
+  document.querySelectorAll('#africa-map-wrap .country').forEach(el => {
+    const match = byName[(el.dataset.name || '').toLowerCase()];
+    if (match) {
+      el.style.fill = colorFor(match.avg_resistance);
+      el.dataset.pct = match.avg_resistance;
+      el.dataset.hasData = 'true';
+    } else {
+      el.style.fill = '#e4e2d6';
+      delete el.dataset.pct;
+      el.dataset.hasData = 'false';
+    }
+  });
+
+  const listEl = document.getElementById('geo-country-list');
+  if (!countries.length) {
+    listEl.innerHTML = '<div class="empty-note">No evidence for this combination yet.</div>';
+  } else {
+    listEl.innerHTML = countries.map(c => `
+      <div class="country-row">
+        <div>${c.country} <span style="color:#97a49b; font-size:11.5px;">(${c.n_records} record${c.n_records>1?'s':''})</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.min(c.avg_resistance,100)}%; background:${colorFor(c.avg_resistance)}"></div></div>
+        <div class="pct">${c.avg_resistance}%</div>
+      </div>`).join('');
+  }
+}
+
+// ---------- Microbes view ----------
+
+async function loadMicrobesFullTable() {
+  const { pathogens } = await fetchJSON('/top-resistant?limit=50');
+  const body = document.getElementById('microbes-full-body');
+  if (!pathogens.length) { body.innerHTML = '<tr><td colspan="4" class="empty-note">No data yet.</td></tr>'; return; }
+  const max = Math.max(...pathogens.map(p => p.avg_resistance));
+  body.innerHTML = pathogens.map(p => `
+    <tr>
+      <td>${p.pathogen}</td>
+      <td>${p.avg_resistance}%</td>
+      <td><div class="bar-track"><div class="bar-fill" style="width:${(p.avg_resistance/max*100).toFixed(0)}%; background:${colorFor(p.avg_resistance)}"></div></div></td>
+      <td>${p.n_records}</td>
+    </tr>`).join('');
+}
+
+// ---------- Antibiotics view ----------
+
+async function loadAntibioticsFullTable() {
+  const { antibiotic_classes } = await fetchJSON('/by-antibiotic');
+  const body = document.getElementById('antibiotics-full-body');
+  if (!antibiotic_classes.length) { body.innerHTML = '<tr><td colspan="4" class="empty-note">No data yet.</td></tr>'; return; }
+  const max = Math.max(...antibiotic_classes.map(a => a.avg_resistance));
+  body.innerHTML = antibiotic_classes.map(a => `
+    <tr>
+      <td>${a.antibiotic_class}</td>
+      <td>${a.avg_resistance}%</td>
+      <td><div class="bar-track"><div class="bar-fill" style="width:${(a.avg_resistance/max*100).toFixed(0)}%; background:${colorFor(a.avg_resistance)}"></div></div></td>
+      <td>${a.n_records}</td>
+    </tr>`).join('');
+}
+
+// ---------- Trends view (own filters + larger chart) ----------
+
+let trendChart2 = null;
+
+async function initTrendsView() {
+  const [{ pathogens }, { antibiotic_classes }, { countries }] = await Promise.all([
+    fetchJSON('/pathogens'), fetchJSON('/antibiotics'), fetchJSON('/countries')
+  ]);
+  const fill = (id, items, placeholder) => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = `<option value="">${placeholder}</option>` + items.map(i => `<option value="${i}">${i}</option>`).join('');
+  };
+  fill('trend-filter-pathogen', pathogens, 'All pathogens');
+  fill('trend-filter-antibiotic', antibiotic_classes, 'All antibiotic classes');
+  fill('trend-filter-country', countries, 'All countries');
+  if (pathogens.includes('Klebsiella pneumoniae')) document.getElementById('trend-filter-pathogen').value = 'Klebsiella pneumoniae';
+  if (antibiotic_classes.includes('carbapenems')) document.getElementById('trend-filter-antibiotic').value = 'carbapenems';
+  if (countries.includes('Ethiopia')) document.getElementById('trend-filter-country').value = 'Ethiopia';
+
+  ['trend-filter-pathogen', 'trend-filter-antibiotic', 'trend-filter-country'].forEach(id =>
+    document.getElementById(id).addEventListener('change', refreshTrendsView));
+
+  await refreshTrendsView();
+}
+
+async function refreshTrendsView() {
+  const pathogen = document.getElementById('trend-filter-pathogen').value;
+  const antibiotic = document.getElementById('trend-filter-antibiotic').value;
+  const country = document.getElementById('trend-filter-country').value;
+
+  document.getElementById('trend-sub-2').textContent =
+    [pathogen, antibiotic, country].filter(Boolean).join(' \u00b7 ') || 'Select filters to see a trend';
+
+  let q = '/records?';
+  if (pathogen) q += 'pathogen=' + encodeURIComponent(pathogen) + '&';
+  if (antibiotic) q += 'antibiotic_class=' + encodeURIComponent(antibiotic) + '&';
+  if (country) q += 'country=' + encodeURIComponent(country);
+  const { records } = await fetchJSON(q);
+
+  const points = records.filter(r => /^\d{4}$/.test(r.year)).sort((a, b) => a.year.localeCompare(b.year));
+  const container = document.getElementById('trend-chart-2').parentElement;
+
+  if (typeof Chart === 'undefined') {
+    container.innerHTML = '<div class="empty-note">Chart library did not load.</div>';
+    return;
+  }
+  const ctx = document.getElementById('trend-chart-2').getContext('2d');
+  if (trendChart2) trendChart2.destroy();
+  if (!points.length) { trendChart2 = null; ctx.clearRect(0, 0, 900, 320); return; }
+
+  trendChart2 = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: points.map(p => p.year),
+      datasets: [{
+        label: 'Resistance %', data: points.map(p => p.resistance_pct),
+        borderColor: '#1f4d3a', backgroundColor: 'rgba(31,77,58,0.08)',
+        borderWidth: 2, fill: true, tension: 0.25, pointRadius: 4, pointBackgroundColor: '#1f4d3a',
+      }]
+    },
+    options: {
+      responsive: true, plugins: { legend: { display: false } },
+      scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' }, grid: { color: '#eeece2' } }, x: { grid: { display: false } } }
+    }
+  });
+}
+
+// ---------- Sources view ----------
+
+async function loadSourcesFullList() {
+  const { sources } = await fetchJSON('/sources');
+  const el = document.getElementById('sources-full-list');
+  if (!sources.length) { el.innerHTML = '<div class="empty-note">No sources yet.</div>'; return; }
+  el.innerHTML = sources.map(s => `
+    <div class="source-card">
+      <h4>${s.source_title || 'Untitled'}</h4>
+      <div class="meta">
+        ${s.source_authors ? s.source_authors + '<br>' : ''}
+        ${s.source_institution ? s.source_institution + '<br>' : ''}
+        ${s.source_journal ? s.source_journal + ' &middot; ' : ''}${s.collection_period || ''}<br>
+        ${s.source_license ? 'License: ' + s.source_license + ' &middot; ' : ''}
+        ${s.source_url ? `<a href="${s.source_url}" target="_blank">${s.source_url}</a>` : ''}
+      </div>
+    </div>`).join('');
+}
 </script>
 </body>
 </html>

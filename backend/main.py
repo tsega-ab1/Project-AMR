@@ -170,6 +170,26 @@ def by_country(pathogen: Optional[str] = None, antibiotic_class: Optional[str] =
     return {"countries": [dict(r) for r in rows]}
 
 
+@app.get("/by-antibiotic")
+def by_antibiotic(pathogen: Optional[str] = None, country: Optional[str] = None):
+    """Average resistance per antibiotic class - powers the Antibiotics view."""
+    query = """SELECT antibiotic_class, ROUND(AVG(resistance_pct), 1) as avg_resistance, COUNT(*) as n_records
+               FROM evidence_records WHERE 1=1"""
+    params = []
+    if pathogen:
+        query += " AND pathogen = ?"
+        params.append(pathogen)
+    if country:
+        query += " AND country = ?"
+        params.append(country)
+    query += " GROUP BY antibiotic_class ORDER BY avg_resistance DESC"
+
+    conn = get_conn()
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+    return {"antibiotic_classes": [dict(r) for r in rows]}
+
+
 @app.get("/sources")
 def list_sources():
     """All cited sources - powers the 'publication explorer' feature."""
