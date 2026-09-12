@@ -36,23 +36,33 @@ def load_all():
         data = json.loads(seed_file.read_text())
         meta = data.get("_meta", {})
 
-        if meta.get("source_doi"):
+        # Two supported shapes: a single source directly in _meta
+        # (source_doi/source_title/...), or a list of sources under
+        # _meta["sources"] when one file cites more than one publication.
+        source_entries = meta.get("sources") if "sources" in meta else (
+            [meta] if meta.get("source_doi") else []
+        )
+
+        for src in source_entries:
+            if not src.get("source_doi"):
+                continue
             conn.execute(
                 """INSERT OR REPLACE INTO sources
                    (citation_doi, source_title, source_authors, source_institution,
                     source_journal, source_url, source_license, collection_period)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
-                    meta.get("source_doi"),
-                    meta.get("source_title"),
-                    meta.get("source_authors"),
-                    meta.get("source_institution"),
-                    meta.get("source_journal"),
-                    meta.get("source_url"),
-                    meta.get("source_license"),
-                    meta.get("collection_period"),
+                    src.get("source_doi"),
+                    src.get("source_title"),
+                    src.get("source_authors"),
+                    src.get("source_institution"),
+                    src.get("source_journal"),
+                    src.get("source_url"),
+                    src.get("source_license"),
+                    src.get("collection_period"),
                 ),
             )
+
 
         for rec in data.get("records", []):
             conn.execute(
