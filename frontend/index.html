@@ -94,9 +94,26 @@
   .main { flex: 1; padding: 26px 34px 60px; max-width: 1400px; }
   .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 26px; }
   .search {
-    flex: 1; max-width: 480px; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--line);
+    width: 100%; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--line);
     background: var(--panel); font-family: -apple-system, sans-serif; font-size: 13px; color: var(--ink-soft);
   }
+  .search:focus { outline: 2px solid var(--forest-light); outline-offset: 1px; }
+  .search-results {
+    position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    box-shadow: var(--shadow); z-index: 20; max-height: 320px; overflow-y: auto; display: none;
+  }
+  .search-results.open { display: block; }
+  .search-result-item {
+    padding: 9px 14px; font-family: -apple-system, sans-serif; font-size: 13px; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .search-result-item:hover { background: #f2f1e8; }
+  .search-result-kind {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: #97a49b;
+    background: #f2f1e8; padding: 2px 7px; border-radius: 4px;
+  }
+  .search-empty { padding: 12px 14px; font-family: -apple-system, sans-serif; font-size: 12.5px; color: #97a49b; }
   .topbar-right { display: flex; align-items: center; gap: 16px; font-family: -apple-system, sans-serif; }
   .avatar {
     width: 34px; height: 34px; border-radius: 50%; background: var(--forest); color: #fff;
@@ -196,7 +213,10 @@
 
   <main class="main">
     <div class="topbar">
-      <input class="search" type="text" placeholder="Search by pathogen, antibiotic, or country&hellip;" disabled>
+      <div style="position:relative; flex:1; max-width:480px;">
+        <input class="search" id="global-search" type="text" placeholder="Search by pathogen, antibiotic, or country&hellip;" autocomplete="off">
+        <div id="search-results" class="search-results"></div>
+      </div>
       <div class="topbar-right">
         <div class="avatar">TA</div>
       </div>
@@ -613,10 +633,77 @@ async function init() {
   }
 
   setupNav();
+  setupSearch();
+  buildSearchIndex().catch(err => console.error('search index failed:', err));
 }
 init();
 
-// ---------- Sidebar navigation ----------
+// ---------- Global search ----------
+
+let searchIndex = null; // { pathogens: [], antibiotics: [], countries: [] }
+
+async function buildSearchIndex() {
+  const [{ pathogens }, { antibiotic_classes }, { countries }] = await Promise.all([
+    fetchJSON('/pathogens'), fetchJSON('/antibiotics'), fetchJSON('/countries')
+  ]);
+  searchIndex = { pathogens, antibiotics: antibiotic_classes, countries };
+}
+
+function runSearch(term) {
+  const t = term.trim().toLowerCase();
+  const resultsEl = document.getElementById('search-results');
+  if (!t || !searchIndex) { resultsEl.classList.remove('open'); resultsEl.innerHTML = ''; return; }
+
+  const matches = [];
+  searchIndex.pathogens.forEach(p => { if (p.toLowerCase().includes(t)) matches.push({ kind: 'Pathogen', value: p, view: 'microbes' }); });
+  searchIndex.antibiotics.forEach(a => { if (a.toLowerCase().includes(t)) matches.push({ kind: 'Antibiotic', value: a, view: 'antibiotics' }); });
+  searchIndex.countries.forEach(c => { if (c.toLowerCase().includes(t)) matches.push({ kind: 'Country', value: c, view: 'geography' }); });
+
+  if (!matches.length) {
+    resultsEl.innerHTML = '<div class="search-empty">No matches in the current evidence base.</div>';
+    resultsEl.classList.add('open');
+    return;
+  }
+
+  resultsEl.innerHTML = matches.slice(0, 12).map((m, i) => `
+    <div class="search-result-item" data-idx="${i}">
+      <span>${m.value}</span>
+      <span class="search-result-kind">${m.kind}</span>
+    </div>`).join('');
+  resultsEl.classList.add('open');
+
+  resultsEl.querySelectorAll('.search-result-item').forEach((el, i) => {
+    el.addEventListener('click', () => selectSearchResult(matches[i]));
+  });
+}
+
+function selectSearchResult(match) {
+  document.getElementById('search-results').classList.remove('open');
+  document.getElementById('global-search').value = match.value;
+  switchView(match.view);
+
+  // Pre-select the matched value in that view's own filters once it's loaded
+  const applyToSelect = (id) => {
+    const el = document.getElementById(id);
+    if (el && [...el.options].some(o => o.value === match.value)) el.value = match.value;
+  };
+  setTimeout(() => {
+    if (match.kind === 'Country') { applyToSelect('geo-filter-pathogen'); refreshMap(); }
+    if (match.kind === 'Pathogen') { /* Microbes view is a full list already sorted - nothing to pre-select */ }
+    if (match.kind === 'Antibiotic') { /* Antibiotics view is a full list already sorted - nothing to pre-select */ }
+  }, 300);
+}
+
+function setupSearch() {
+  const input = document.getElementById('global-search');
+  input.addEventListener('input', () => runSearch(input.value));
+  input.addEventListener('focus', () => { if (input.value) runSearch(input.value); });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#global-search') && !e.target.closest('#search-results')) {
+      document.getElementById('search-results').classList.remove('open');
+    }
+  });
+}
 
 const viewLoaded = { geography: false, microbes: false, antibiotics: false, trends: false, sources: false };
 
