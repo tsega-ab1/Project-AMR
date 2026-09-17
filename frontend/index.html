@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Project AMR — Africa AMR Intelligence Dashboard</title>
 <script src="./vendor/chart.umd.js"></script>
+<script src="./vendor/3Dmol-min.js"></script>
 <style>
   :root {
     --ink: #16241f;
@@ -70,6 +71,12 @@
   .africa-map-wrap svg .country:hover { stroke: #16241f; stroke-width: 1; }
   .map-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; font-family: -apple-system, sans-serif; font-size: 11.5px; color: var(--ink-soft); }
   .map-legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  .gene-chip-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .gene-chip { font-family: -apple-system, sans-serif; font-size: 13px; padding: 6px 12px; border-radius: 999px; background: #eeece2; cursor: pointer; border: 1px solid transparent; }
+  .gene-chip:hover { border-color: #1f4d3a; }
+  .gene-chip.active { background: #1f4d3a; color: #fff; }
+  .gene-chip.unreported { opacity: 0.45; cursor: not-allowed; }
+  .matrix-cell-empty { color: #c8c5b8; text-align: center; }
   .map-tooltip {
     position: absolute; pointer-events: none; background: var(--ink); color: #fff;
     font-family: -apple-system, sans-serif; font-size: 12px; padding: 6px 10px; border-radius: 6px;
@@ -204,6 +211,8 @@
       <li data-view="antibiotics">Antibiotics</li>
       <li data-view="geography">Geography</li>
       <li data-view="trends">Trends</li>
+      <li data-view="matrix">Resistance matrix</li>
+      <li data-view="mechanisms">Mechanisms</li>
       <li data-view="sources">Evidence sources</li>
     </ul>
     <div class="sidebar-footer">
@@ -276,6 +285,14 @@
         <div class="field">
           <label>Country</label>
           <select id="filter-country"></select>
+        </div>
+        <div class="field">
+          <label>Specimen</label>
+          <select id="filter-specimen"></select>
+        </div>
+        <div class="field">
+          <label>Population / setting</label>
+          <select id="filter-population"></select>
         </div>
         <p class="panel-title" style="font-size:14px; margin: 20px 0 6px;">Key Insights</p>
         <div id="insights"><div class="empty-note">Loading&hellip;</div></div>
@@ -386,6 +403,51 @@
       </div>
     </section>
 
+    <section class="view" id="view-matrix">
+      <div class="panel full-table-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-title">Pathogen &times; Antibiotic Resistance Matrix</p>
+            <p class="panel-sub">Only cells with actual evidence are shown &mdash; a blank cell means no record, not 0% resistance.</p>
+          </div>
+        </div>
+        <div class="field" style="max-width:260px; display:inline-block; margin-right:12px;">
+          <label style="font-family:-apple-system,sans-serif; font-size:12px; color:var(--ink-soft);">Country</label>
+          <select id="matrix-filter-country"></select>
+        </div>
+        <div style="overflow-x:auto; margin-top:14px;">
+          <table id="matrix-table">
+            <thead><tr><th>Pathogen \ Antibiotic class</th></tr></thead>
+            <tbody id="matrix-body"><tr><td class="empty-note">Loading&hellip;</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-mechanisms">
+      <div class="panel" style="margin-bottom:14px;">
+        <div class="panel-head">
+          <div>
+            <p class="panel-title">Resistance Mechanisms &mdash; Protein Structures</p>
+            <p class="panel-sub">Predicted structures from AlphaFold DB for named resistance genes reported in the evidence base.</p>
+          </div>
+        </div>
+        <div id="gene-list" class="gene-chip-list"><div class="empty-note">Loading&hellip;</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-head"><p class="panel-title" id="structure-title">Select a gene</p></div>
+          <div id="structure-viewer" style="width:100%; height:420px; position:relative; background:#f4f2e9; border-radius:8px;">
+            <div class="empty-note" id="structure-empty">Pick a gene above to load its predicted structure.</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><p class="panel-title">About this structure</p></div>
+          <div id="structure-meta"><div class="empty-note">&nbsp;</div></div>
+        </div>
+      </div>
+    </section>
+
     <section class="view" id="view-sources">
       <div class="panel">
         <div class="panel-head"><p class="panel-title">Evidence Sources</p></div>
@@ -462,8 +524,9 @@ async function loadCountries(pathogen, antibiotic) {
 }
 
 async function populateFilters() {
-  const [{ pathogens }, { antibiotic_classes }, { countries }] = await Promise.all([
-    fetchJSON('/pathogens'), fetchJSON('/antibiotics'), fetchJSON('/countries')
+  const [{ pathogens }, { antibiotic_classes }, { countries }, { specimens }, { populations }] = await Promise.all([
+    fetchJSON('/pathogens'), fetchJSON('/antibiotics'), fetchJSON('/countries'),
+    fetchJSON('/specimens'), fetchJSON('/populations')
   ]);
   const fill = (id, items, placeholder) => {
     const sel = document.getElementById(id);
@@ -472,15 +535,16 @@ async function populateFilters() {
   fill('filter-pathogen', pathogens, 'All pathogens');
   fill('filter-antibiotic', antibiotic_classes, 'All antibiotic classes');
   fill('filter-country', countries, 'All countries');
+  fill('filter-specimen', specimens, 'All specimens');
+  fill('filter-population', populations, 'All populations/settings');
 
   // Sensible default so the trend chart isn't empty on first load
   if (pathogens.includes('Klebsiella pneumoniae')) document.getElementById('filter-pathogen').value = 'Klebsiella pneumoniae';
   if (antibiotic_classes.includes('carbapenems')) document.getElementById('filter-antibiotic').value = 'carbapenems';
   if (countries.includes('Ethiopia')) document.getElementById('filter-country').value = 'Ethiopia';
 
-  document.getElementById('filter-pathogen').addEventListener('change', onFiltersChanged);
-  document.getElementById('filter-antibiotic').addEventListener('change', onFiltersChanged);
-  document.getElementById('filter-country').addEventListener('change', onFiltersChanged);
+  ['filter-pathogen', 'filter-antibiotic', 'filter-country', 'filter-specimen', 'filter-population']
+    .forEach(id => document.getElementById(id).addEventListener('change', onFiltersChanged));
 }
 
 async function loadTrend() {
@@ -568,7 +632,20 @@ async function loadEvidenceTable() {
   const { sources } = await fetchJSON('/sources');
   sourcesByDoi = Object.fromEntries(sources.map(s => [s.citation_doi, s]));
 
-  const { records } = await fetchJSON('/records?min_confidence=moderate');
+  const pathogen = document.getElementById('filter-pathogen')?.value;
+  const antibiotic = document.getElementById('filter-antibiotic')?.value;
+  const country = document.getElementById('filter-country')?.value;
+  const specimen = document.getElementById('filter-specimen')?.value;
+  const population = document.getElementById('filter-population')?.value;
+
+  let q = '/records?min_confidence=moderate';
+  if (pathogen) q += '&pathogen=' + encodeURIComponent(pathogen);
+  if (antibiotic) q += '&antibiotic_class=' + encodeURIComponent(antibiotic);
+  if (country) q += '&country=' + encodeURIComponent(country);
+  if (specimen) q += '&specimen=' + encodeURIComponent(specimen);
+  if (population) q += '&population=' + encodeURIComponent(population);
+
+  const { records } = await fetchJSON(q);
   const recent = records.slice(-8).reverse();
   const body = document.getElementById('evidence-body');
   if (!recent.length) { body.innerHTML = '<tr><td colspan="7" class="empty-note">No records yet.</td></tr>'; return; }
@@ -594,7 +671,7 @@ async function loadEvidenceTable() {
 async function onFiltersChanged() {
   const pathogen = document.getElementById('filter-pathogen').value;
   const antibiotic = document.getElementById('filter-antibiotic').value;
-  await Promise.all([loadCountries(pathogen, antibiotic), loadTrend()]);
+  await Promise.all([loadCountries(pathogen, antibiotic), loadTrend(), loadEvidenceTable()]);
 }
 
 async function init() {
@@ -705,7 +782,7 @@ function setupSearch() {
   });
 }
 
-const viewLoaded = { geography: false, microbes: false, antibiotics: false, trends: false, sources: false };
+const viewLoaded = { geography: false, microbes: false, antibiotics: false, trends: false, matrix: false, mechanisms: false, sources: false };
 
 function setupNav() {
   document.querySelectorAll('.nav li').forEach(li => {
@@ -725,6 +802,8 @@ async function switchView(view) {
     else if (view === 'microbes') await loadMicrobesFullTable();
     else if (view === 'antibiotics') await loadAntibioticsFullTable();
     else if (view === 'trends') await initTrendsView();
+    else if (view === 'matrix') await initMatrixView();
+    else if (view === 'mechanisms') await initMechanismsView();
     else if (view === 'sources') await loadSourcesFullList();
   } catch (err) {
     console.error(view, 'view failed to load:', err);
@@ -932,6 +1011,144 @@ async function loadSourcesFullList() {
         ${s.source_url ? `<a href="${s.source_url}" target="_blank">${s.source_url}</a>` : ''}
       </div>
     </div>`).join('');
+}
+
+// ---------- Resistance matrix view (item 4: pathogen x antibiotic) ----------
+
+async function initMatrixView() {
+  const { countries } = await fetchJSON('/countries');
+  const sel = document.getElementById('matrix-filter-country');
+  sel.innerHTML = '<option value="">All countries</option>' + countries.map(c => `<option value="${c}">${c}</option>`).join('');
+  sel.addEventListener('change', refreshMatrix);
+  await refreshMatrix();
+}
+
+async function refreshMatrix() {
+  const country = document.getElementById('matrix-filter-country').value;
+  let q = '/matrix';
+  if (country) q += '?country=' + encodeURIComponent(country);
+  const { cells } = await fetchJSON(q);
+
+  const table = document.getElementById('matrix-table');
+  const thead = table.querySelector('thead tr');
+  const tbody = document.getElementById('matrix-body');
+
+  if (!cells.length) {
+    tbody.innerHTML = '<tr><td class="empty-note">No evidence for this filter yet.</td></tr>';
+    return;
+  }
+
+  const pathogens = [...new Set(cells.map(c => c.pathogen))].sort();
+  const antibiotics = [...new Set(cells.map(c => c.antibiotic_class))].sort();
+  const byKey = Object.fromEntries(cells.map(c => [c.pathogen + '||' + c.antibiotic_class, c]));
+
+  thead.innerHTML = '<th>Pathogen \\ Antibiotic class</th>' + antibiotics.map(a => `<th>${a}</th>`).join('');
+  tbody.innerHTML = pathogens.map(p => {
+    const row = antibiotics.map(a => {
+      const cell = byKey[p + '||' + a];
+      if (!cell) return '<td class="matrix-cell-empty">&mdash;</td>';
+      return `<td style="background:${colorFor(cell.avg_resistance)}22;">
+        <strong>${cell.avg_resistance}%</strong><br>
+        <span style="font-size:10.5px; color:#8a8672;">${cell.n_records} rec.</span>
+      </td>`;
+    }).join('');
+    return `<tr><td><strong>${p}</strong></td>${row}</tr>`;
+  }).join('');
+}
+
+// ---------- Mechanisms view (item 5 + AlphaFold structure viewer) ----------
+
+let glviewer = null;
+
+async function initMechanismsView() {
+  const { genes } = await fetchJSON('/genes');
+  const listEl = document.getElementById('gene-list');
+
+  if (!genes.length) {
+    listEl.innerHTML = '<div class="empty-note">No genes in the reference table yet - see data/reference/resistance_genes.json.</div>';
+    return;
+  }
+
+  listEl.innerHTML = genes.map(g => {
+    const disabledReason = !g.verified
+      ? 'title="UniProt accession not yet verified - see data/reference/resistance_genes.json"'
+      : !g.reported_in_evidence
+        ? 'title="No evidence record currently reports this gene - showing the reference structure anyway"'
+        : '';
+    const cls = !g.verified ? 'gene-chip unreported' : 'gene-chip';
+    return `<div class="${cls}" data-gene="${g.gene_name}" ${disabledReason}>${g.gene_name}${g.reported_in_evidence ? '' : ' <span style="opacity:.6;">(not yet reported)</span>'}</div>`;
+  }).join('');
+
+  listEl.querySelectorAll('.gene-chip:not(.unreported)').forEach(chip => {
+    chip.addEventListener('click', () => {
+      listEl.querySelectorAll('.gene-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      loadGeneStructure(chip.dataset.gene);
+    });
+  });
+
+  // Auto-select the first verified gene so the view isn't empty on first load
+  const firstVerified = listEl.querySelector('.gene-chip:not(.unreported)');
+  if (firstVerified) firstVerified.click();
+}
+
+async function loadGeneStructure(geneName) {
+  document.getElementById('structure-title').textContent = geneName;
+  const metaEl = document.getElementById('structure-meta');
+  const viewerEl = document.getElementById('structure-viewer');
+  metaEl.innerHTML = '<div class="empty-note">Fetching from AlphaFold DB&hellip;</div>';
+
+  let structure;
+  try {
+    structure = await fetchJSON('/gene/' + encodeURIComponent(geneName) + '/structure');
+  } catch (err) {
+    metaEl.innerHTML = '<div class="empty-note">Could not reach the API.</div>';
+    return;
+  }
+
+  if (structure.error) {
+    metaEl.innerHTML = `<div class="empty-note">${structure.error}</div>`;
+    viewerEl.innerHTML = `<div class="empty-note" style="padding-top:180px;">No structure to display.</div>`;
+    return;
+  }
+
+  metaEl.innerHTML = `
+    <p style="margin:0 0 8px;"><strong>UniProt:</strong> <a href="https://www.uniprot.org/uniprotkb/${structure.uniprot_id}/entry" target="_blank">${structure.uniprot_id}</a></p>
+    <p style="margin:0 0 8px;"><strong>Mechanism family:</strong> ${structure.mechanism_family || '&ndash;'}</p>
+    <p style="margin:0 0 8px;"><strong>Ambler class:</strong> ${structure.ambler_class || '&ndash;'}</p>
+    <p style="margin:0 0 8px;"><strong>AlphaFold confidence (avg pLDDT):</strong> ${structure.confidence_avg_plddt != null ? structure.confidence_avg_plddt.toFixed(1) : '&ndash;'}</p>
+    <p style="margin:0; font-size:12.5px; color:#8a8672;">${structure.reference_note || ''}</p>
+  `;
+
+  if (typeof $3Dmol === 'undefined') {
+    viewerEl.innerHTML = '<div class="empty-note" style="padding-top:180px;">3Dmol.js did not load - check that frontend/vendor/3Dmol-min.js exists.</div>';
+    return;
+  }
+  if (!structure.pdb_url) {
+    viewerEl.innerHTML = '<div class="empty-note" style="padding-top:180px;">AlphaFold returned no coordinate file for this accession.</div>';
+    return;
+  }
+
+  viewerEl.innerHTML = '';
+  glviewer = $3Dmol.createViewer(viewerEl, { backgroundColor: 'white' });
+  try {
+    const pdbText = await (await fetch(structure.pdb_url)).text();
+    glviewer.addModel(pdbText, 'pdb');
+    // Color by AlphaFold's own per-residue confidence (stored in the B-factor
+    // column) so low-confidence loop regions are visually distinguishable
+    // from the well-resolved core - standard AlphaFold convention.
+    glviewer.setStyle({}, { cartoon: { colorfunc: atom => {
+      const b = atom.b;
+      if (b > 90) return '#1f4d3a';   // very high confidence
+      if (b > 70) return '#4f8a6a';   // confident
+      if (b > 50) return '#e0a94a';   // low
+      return '#c8503a';               // very low
+    }}});
+    glviewer.zoomTo();
+    glviewer.render();
+  } catch (err) {
+    viewerEl.innerHTML = `<div class="empty-note" style="padding-top:180px;">Could not load the structure file from AlphaFold (${err.message}). This can happen if the coordinate file host blocks cross-origin requests - try opening the UniProt link above directly.</div>`;
+  }
 }
 </script>
 </body>

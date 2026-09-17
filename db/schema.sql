@@ -31,9 +31,19 @@ CREATE TABLE IF NOT EXISTS evidence_records (
     confidence_tier         TEXT NOT NULL,   -- high / moderate / low / very low
     citation_doi           TEXT NOT NULL REFERENCES sources(citation_doi),
     note                 TEXT,
+    resistance_gene         TEXT,             -- e.g. "CTX-M-15", "NDM-1" - ONLY set when the source paper
+                                             -- itself names the gene/allele (PCR, sequencing, WGS). NULL
+                                             -- for phenotypic-only susceptibility testing results. Never
+                                             -- infer a gene from the antibiotic_class or resistance_pct.
     seed_file             TEXT NOT NULL     -- which data/evidence/*.json this came from, for traceability
 );
 
 CREATE INDEX IF NOT EXISTS idx_evidence_pathogen ON evidence_records(pathogen);
 CREATE INDEX IF NOT EXISTS idx_evidence_country ON evidence_records(country);
 CREATE INDEX IF NOT EXISTS idx_evidence_antibiotic ON evidence_records(antibiotic_class);
+CREATE INDEX IF NOT EXISTS idx_evidence_gene ON evidence_records(resistance_gene);
+
+-- Migration note: if amr.sqlite already exists from before this column existed,
+-- run this once instead of recreating the DB:
+--   ALTER TABLE evidence_records ADD COLUMN resistance_gene TEXT;
+--   CREATE INDEX IF NOT EXISTS idx_evidence_gene ON evidence_records(resistance_gene);

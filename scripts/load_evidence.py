@@ -69,8 +69,9 @@ def load_all():
                 """INSERT INTO evidence_records
                    (pathogen, antibiotic_class, country, region, year,
                     resistance_pct, ci_lower, ci_upper, specimen, population,
-                    source_type, confidence_tier, citation_doi, note, seed_file)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    source_type, confidence_tier, citation_doi, note,
+                    resistance_gene, seed_file)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     rec.get("pathogen"),
                     rec.get("antibiotic_class"),
@@ -86,6 +87,9 @@ def load_all():
                     rec.get("confidence_tier"),
                     rec.get("citation_doi"),
                     rec.get("note"),
+                    # Only ever set this in a JSON seed file when the source paper
+                    # itself names the gene (PCR/sequencing/WGS) - never inferred.
+                    rec.get("resistance_gene"),
                     seed_file.name,
                 ),
             )

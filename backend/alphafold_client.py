@@ -10,10 +10,16 @@ when you need it.
 
 Example: GET /api/gene/NDM-1/structure -> calls get_structure("C7C422")
 """
-import requests
+import json
+from pathlib import Path
 from functools import lru_cache
 
+import requests
+
 ALPHAFOLD_BASE = "https://alphafold.ebi.ac.uk/api/prediction"
+GENE_REFERENCE_PATH = (
+    Path(__file__).resolve().parent.parent / "data" / "reference" / "resistance_genes.json"
+)
 
 
 @lru_cache(maxsize=512)
@@ -43,14 +49,52 @@ def get_structure(uniprot_id: str) -> dict | None:
     }
 
 
-# Example wiring for a Flask/FastAPI-style route:
-#
-# @app.get("/api/gene/{gene_name}/structure")
-# def gene_structure(gene_name: str):
-#     uniprot_id = GENE_TO_UNIPROT.get(gene_name)  # your own small mapping
-#     if not uniprot_id:
-#         return {"error": "no UniProt mapping for this gene"}, 404
-#     structure = get_structure(uniprot_id)
-#     if structure is None:
-#         return {"error": "no AlphaFold prediction available"}, 404
-#     return structure
+def load_gene_reference() -> dict:
+    """
+    Loads data/reference/resistance_genes.json fresh on every call (it's a
+    small file maintained by hand, not worth caching across edits during
+    development). Only the top-level "genes" object is trusted - the
+    "_needs_verification_before_adding" block is intentionally never read
+    here, so an unverified candidate accession can never reach the API by
+    accident.
+    """
+    with open(GENE_REFERENCE_PATH) as f:
+        data = json.load(f)
+    return data.get("genes", {})
+
+
+def get_structure_for_gene(gene_name: str) -> dict | None:
+    """
+    Looks up gene_name (e.g. "CTX-M-15") in the verified reference table,
+    then fetches its AlphaFold prediction.
+
+    IMPORTANT CAVEAT to surface wherever this is displayed: this returns
+    the predicted structure of the *canonical/reference allele* as
+    deposited in UniProt - not a structure folded from the exact isolate
+    sequence in any particular evidence record. Two evidence records that
+    both cite "NDM-1" will show the same structure here even if they're
+    different studies in different years/countries, because they're
+    reporting carriage of the same named gene, not two different folded
+    sequences. Treat this as "here is what the reported mechanism looks
+    like structurally", not "here is this isolate's exact protein".
+    """
+    genes = load_gene_reference()
+    entry = genes.get(gene_name)
+    if entry is None or not entry.get("verified", False):
+        return None
+    structure = get_structure(entry["uniprot_id"])
+    if structure is None:
+        return None
+    structure["gene_name"] = gene_name
+    structure["mechanism_family"] = entry.get("mechanism_family")
+    structure["ambler_class"] = entry.get("ambler_class")
+    structure["reference_note"] = (
+        "Predicted structure of the canonical UniProt-deposited allele for "
+        f"{gene_name}, not a structure folded from any single isolate's sequence."
+    )
+    return structure
+
+
+# Example wiring for a Flask/FastAPI-style route - see backend/main.py for
+# the actual route (GET /gene/{gene_name}/structure), which calls
+# get_structure_for_gene() above.

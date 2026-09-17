@@ -1,0 +1,47 @@
+{
+  "_readme": "Maps a named resistance gene/allele (as it would appear in evidence_records.resistance_gene) to the UniProt accession AlphaFold DB needs. 'verified' means the accession was confirmed to be that exact gene product from a UniProt entry page, not guessed from a paper abstract. 'unverified' entries are commented out on purpose - copy one to the real list only after checking https://www.uniprot.org/uniprotkb/<id>/entry yourself. Multiple UniProt entries sometimes exist for the same protein (independent submissions) - if AlphaFold has no prediction for the exact accession you find, try a close relative, but never assume it's an exact match and label it accordingly.",
+  "genes": {
+    "CTX-M-15": {
+      "uniprot_id": "I6ZFV8",
+      "mechanism_family": "ESBL",
+      "ambler_class": "A",
+      "organism_context": "Escherichia coli",
+      "verified": true,
+      "verified_source": "https://www.uniprot.org/uniprot/I6ZFV8"
+    },
+    "CTX-M-14": {
+      "uniprot_id": "H6UQI0",
+      "mechanism_family": "ESBL",
+      "ambler_class": "A",
+      "organism_context": "Escherichia coli",
+      "verified": true,
+      "verified_source": "https://www.uniprot.org/uniprotkb/H6UQI0/entry"
+    },
+    "CTX-M-1": {
+      "uniprot_id": "P28585",
+      "mechanism_family": "ESBL",
+      "ambler_class": "A",
+      "organism_context": "Escherichia coli",
+      "verified": true,
+      "verified_source": "https://www.uniprot.org/uniprotkb/P28585/entry"
+    },
+    "NDM-1": {
+      "uniprot_id": "C7C422",
+      "mechanism_family": "Carbapenemase (metallo-beta-lactamase)",
+      "ambler_class": "B",
+      "organism_context": "Klebsiella pneumoniae",
+      "verified": false,
+      "verified_source": null,
+      "note": "Carried over from the alphafold_client.py docstring example - re-confirm on UniProt before treating it as authoritative."
+    }
+  },
+  "_needs_verification_before_adding": {
+    "OXA-48": {
+      "candidates": ["Q6XEC0", "A0A023W3H0"],
+      "note": "Two different UniProt entries turned up for OXA-48 (independent submissions are common for bacterial plasmid genes). Open both entry pages, check the sequence length/organism match your source paper's isolate, and confirm which one (if either) has an actual AlphaFold prediction before adding it above. Do not guess."
+    },
+    "KPC-2": { "note": "Not yet looked up. Search uniprot.org directly." },
+    "TEM-1": { "note": "Not yet looked up. Search uniprot.org directly." },
+    "SHV-1": { "note": "Not yet looked up. Search uniprot.org directly." }
+  }
+}
