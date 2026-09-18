@@ -1,0 +1,92 @@
+{
+  "_meta": {
+    "description": "Gene-level (WGS-confirmed) resistance evidence from Jimma Medical Center, Ethiopia - the same research group's E. coli and K. pneumoniae genomic epidemiology studies. Unlike the other Ethiopia seed files (phenotypic susceptibility testing only), these records name the specific resistance gene/allele, which is what the Mechanisms/AlphaFold feature needs to connect real evidence to a protein structure.",
+    "sources": [
+      {
+        "source_doi": "10.1016/j.jgar.2021.09.017",
+        "source_title": "Polyclonal spread of blaCTX-M-15 through high-risk clones of Escherichia coli at a tertiary hospital in Ethiopia",
+        "source_authors": "Sewunet T, Asrat D, Woldeamanuel Y, Ny S, Westerlund F, Aseffa A, Giske CG",
+        "source_institution": "Jimma Medical Center, Ethiopia; Addis Ababa University; Karolinska Institutet",
+        "source_journal": "Journal of Global Antimicrobial Resistance",
+        "source_url": "https://doi.org/10.1016/j.jgar.2021.09.017",
+        "source_license": "unknown - check publisher terms before redistributing full text; percentages here are cited facts, not reproduced text",
+        "collection_period": "2016 (single tertiary hospital)",
+        "note": "Whole-genome sequencing (Illumina HiSeq2500) of E. coli isolates from clinical specimens. ESBL-EC prevalence was 54.8% (143/261) of all E. coli; gene-level results below are among the WGS-analyzed ESBL-EC subset (n=138)."
+      },
+      {
+        "source_doi": "10.1093/jacamr/dlab001",
+        "source_title": "High prevalence of blaCTX-M-15 and nosocomial transmission of hypervirulent epidemic clones of Klebsiella pneumoniae at a tertiary hospital in Ethiopia",
+        "source_authors": "Sewunet T, Asrat D, Woldeamanuel Y, Ny S, Westerlund F, Aseffa A, Giske CG",
+        "source_institution": "Jimma Medical Center, Ethiopia; Addis Ababa University; Karolinska Institutet",
+        "source_journal": "JAC-Antimicrobial Resistance",
+        "source_url": "https://doi.org/10.1093/jacamr/dlab001",
+        "source_license": "CC BY-NC (Oxford Academic open access) - non-commercial use only, same caution as the other NC-licensed source in this project",
+        "collection_period": "June-October 2016 (single tertiary hospital)",
+        "note": "Whole-genome sequencing of all ESBL-producing K. pneumoniae isolates (n=109 successfully sequenced of 111 ESBL-KP). ESBL-KP prevalence was 76% (111/146) of all K. pneumoniae isolated; gene-level results below are among the WGS-analyzed subset (n=109). Specimens: sputum, wound swab, urine, stool from medical/surgical/paediatric/ICU units."
+      }
+    ],
+    "schema_version": "0.1"
+  },
+  "records": [
+    {
+      "pathogen": "Escherichia coli",
+      "antibiotic_class": "extended-spectrum cephalosporins",
+      "resistance_gene": "CTX-M-15",
+      "country": "Ethiopia",
+      "region": "Eastern Africa",
+      "year": 2016,
+      "resistance_pct": 88.4,
+      "specimen": "clinical specimens (mixed)",
+      "population": "clinical patients, tertiary hospital",
+      "source_type": "whole-genome sequencing surveillance",
+      "confidence_tier": "high",
+      "citation_doi": "10.1016/j.jgar.2021.09.017",
+      "note": "122/138 WGS-analyzed ESBL-producing E. coli isolates carried blaCTX-M-15 - the dominant ESBL gene, spread across international high-risk clones ST131, ST410, ST648, ST167."
+    },
+    {
+      "pathogen": "Klebsiella pneumoniae",
+      "antibiotic_class": "extended-spectrum cephalosporins",
+      "resistance_gene": "CTX-M-15",
+      "country": "Ethiopia",
+      "region": "Eastern Africa",
+      "year": 2016,
+      "resistance_pct": 84.4,
+      "specimen": "sputum/wound swab/urine/stool",
+      "population": "mixed inpatient/outpatient, tertiary hospital",
+      "source_type": "whole-genome sequencing surveillance",
+      "confidence_tier": "high",
+      "citation_doi": "10.1093/jacamr/dlab001",
+      "note": "92/109 WGS-analyzed ESBL-producing K. pneumoniae isolates carried blaCTX-M-15 - the predominant ESBL gene, associated with high-risk clone ST15 (also encoding blaSHV-28)."
+    },
+    {
+      "pathogen": "Klebsiella pneumoniae",
+      "antibiotic_class": "extended-spectrum cephalosporins",
+      "resistance_gene": "CTX-M-14",
+      "country": "Ethiopia",
+      "region": "Eastern Africa",
+      "year": 2016,
+      "resistance_pct": 1.8,
+      "specimen": "sputum/wound swab/urine/stool",
+      "population": "mixed inpatient/outpatient, tertiary hospital",
+      "source_type": "whole-genome sequencing surveillance",
+      "confidence_tier": "low",
+      "citation_doi": "10.1093/jacamr/dlab001",
+      "note": "2/109 isolates - very small count, one of which co-carried blaCTX-M-15 in the same strain."
+    },
+    {
+      "pathogen": "Klebsiella pneumoniae",
+      "antibiotic_class": "carbapenems",
+      "resistance_gene": "NDM-1",
+      "country": "Ethiopia",
+      "region": "Eastern Africa",
+      "year": 2016,
+      "resistance_pct": 0.9,
+      "specimen": "sputum/wound swab/urine/stool",
+      "population": "mixed inpatient/outpatient, tertiary hospital",
+      "source_type": "whole-genome sequencing surveillance",
+      "confidence_tier": "low",
+      "citation_doi": "10.1093/jacamr/dlab001",
+      "note": "Only 1 of 109 WGS-analyzed ESBL-KP strains carried a carbapenemase gene (blaNDM-1), despite 33/111 (22.6%) showing phenotypic carbapenem non-susceptibility - a real gap between phenotype and this specific genotype worth keeping visible, not smoothing over. This strain was also hypervirulent (ST45) and carried a broad-range IncA/C2 plasmid. NOTE: this evidence record is independent of whether NDM-1's AlphaFold structure mapping is verified - see data/reference/resistance_genes.json, where NDM-1 is still marked unverified for that separate reason."
+    }
+  ]
+}
