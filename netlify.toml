@@ -1,0 +1,6 @@
+[build]
+  base = "frontend"
+  publish = "."
+
+# No build command needed - this is a plain static HTML/CSS/JS site,
+# nothing to compile. Netlify just serves the contents of frontend/ as-is.

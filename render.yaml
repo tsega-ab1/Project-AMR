@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: project-amr-api
+    runtime: python
+    plan: free
+    # Free tier: service spins down after 15 min of inactivity and takes
+    # ~30-60s to wake on the next request. Fine for a portfolio piece,
+    # worth knowing so a cold-start delay doesn't look like it's broken.
+    buildCommand: pip install -r requirements.txt
+    # Rebuild the database from data/evidence/*.json on every start, since
+    # the free tier's disk is not guaranteed to persist across restarts -
+    # this keeps deploys self-contained and reproducible rather than
+    # depending on a database file surviving between deploys.
+    startCommand: python scripts/load_evidence.py && uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
